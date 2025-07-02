@@ -79,3 +79,4 @@ elif mode == 3:
     last_clk = clk_state
     
 time.sleep(0.01)
+
