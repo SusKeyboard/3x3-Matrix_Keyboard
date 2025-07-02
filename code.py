@@ -62,19 +62,20 @@ elif mode == 2:
         if dt_state != clk_state:
             print("Volume Up")
             kbd.send(Keycode.VOLUME_INCREMENT)
-    else:
-        print("Volume Down")
-        kbd.send(Keycode.VOLUME_DECREMENT)
-    time.sleep(0.1) # Prevent rapid repeat
-last_clk = clk_state
+        else:
+            print("Volume Down")
+            kbd.send(Keycode.VOLUME_DECREMENT)
+        time.sleep(0.1) # Prevent rapid repeat
+    last_clk = clk_state
 # === Mode 3: Future Mode ===
 elif mode == 3:
 # Example: mute toggle on encoder rotation
-clk_state = encoder_clk.value
-dt_state = encoder_dt.value
-if clk_state != last_clk:
-print("Mute Toggle")
-kbd.send(Keycode.MUTE)
-time.sleep(0.2)
-last_clk = clk_state
+    clk_state = encoder_clk.value
+    dt_state = encoder_dt.value
+    if clk_state != last_clk:
+        print("Mute Toggle")
+        kbd.send(Keycode.MUTE)
+        time.sleep(0.2)
+    last_clk = clk_state
+    
 time.sleep(0.01)
