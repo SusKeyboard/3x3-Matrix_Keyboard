@@ -40,6 +40,7 @@ kbd = Keyboard(usb_hid.devices)
 
 # ========== State ==========
 mode = 1
+previous_mode = mode
 last_clk = encoder_clk_pin.value
 last_pressed_keys = set()
 NUM_MODES = 3
@@ -52,6 +53,14 @@ def switch_mode():
     if mode > NUM_MODES:
         mode = 1
     print(f"🔁 Switched to Mode {mode}")
+
+
+def release_matrix_keys():
+    """Release any matrix keys that may still be held in HID state."""
+    global last_pressed_keys
+    for key in last_pressed_keys:
+        kbd.release(key)
+    last_pressed_keys = set()
 
 def handle_mode_1():
     global last_pressed_keys
@@ -72,23 +81,25 @@ def handle_mode_2():
     clk_state = encoder_clk_pin.value
     dt_state = encoder_dt_pin.value
 
-    if clk_state != last_clk:
+    # Trigger once per detent by reacting on one edge only.
+    if last_clk and not clk_state:
         if dt_state != clk_state:
             print("🔊 Volume Up")
             kbd.send(Keycode.VOLUME_INCREMENT)
         else:
             print("🔉 Volume Down")
             kbd.send(Keycode.VOLUME_DECREMENT)
-        time.sleep(0.05)  # Optional short delay
+        time.sleep(0.02)
     last_clk = clk_state
 
 def handle_mode_3():
     global last_clk
     clk_state = encoder_clk_pin.value
-    if clk_state != last_clk:
+    # Trigger once per detent by reacting on one edge only.
+    if last_clk and not clk_state:
         print("🔇 Mute Toggled")
         kbd.send(Keycode.MUTE)
-        time.sleep(0.1)
+        time.sleep(0.05)
     last_clk = clk_state
 
 # ========== Main Loop ==========
@@ -99,6 +110,13 @@ while True:
     if encoder_btn.fell:
         switch_mode()
         time.sleep(0.05)  # Minor debounce
+
+    # Cleanup mode-specific state when mode changes.
+    if mode != previous_mode:
+        if previous_mode == 1:
+            release_matrix_keys()
+        last_clk = encoder_clk_pin.value
+        previous_mode = mode
 
     # Handle per-mode behavior
     if mode == 1:
